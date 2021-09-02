@@ -18,7 +18,7 @@
 
 #include <ESP8266WiFi.h>
 #include <PubSubClient.h>
-#include <EEPROM.h>
+// #include <EEPROM.h>
 
 const char *ssid = "GNXS-NEW";
 const char *password = "kar268854";
@@ -36,6 +36,58 @@ const int ledGPIO5 = 5;
 const int ledGPIO4 = 4;
 const int ledGPIO13 = 15;
 const int ledGPIO15 = 13;
+//Motor one
+#define ENA 2
+#define IN1 5
+#define IN2 4
+
+//Motor two
+#define IN3 14
+#define IN4 15
+#define ENB 13
+
+#define Speed 200
+
+void forward() {
+  analogWrite(ENA, Speed);
+  analogWrite(ENB, Speed);
+  digitalWrite(IN1, LOW);
+  digitalWrite(IN2, HIGH);
+  digitalWrite(IN3, HIGH);
+  digitalWrite(IN4, LOW);
+}
+void back() {
+  analogWrite(ENA, Speed);
+  analogWrite(ENB, Speed);
+  digitalWrite(IN1, HIGH);
+  digitalWrite(IN2, LOW);
+  digitalWrite(IN3, LOW);
+  digitalWrite(IN4, HIGH);
+}
+void turnright() {
+  analogWrite(ENA, Speed);
+  analogWrite(ENB, Speed);
+  digitalWrite(IN1, HIGH);
+  digitalWrite(IN2, LOW);
+  digitalWrite(IN3, HIGH);
+  digitalWrite(IN4, LOW);
+}
+void turnleft() {
+  analogWrite(ENA, Speed);
+  analogWrite(ENB, Speed);
+  digitalWrite(IN1, LOW);
+  digitalWrite(IN2, HIGH);
+  digitalWrite(IN3, LOW);
+  digitalWrite(IN4, HIGH);
+}
+void Stop() {
+  analogWrite(ENA, 0);
+  analogWrite(ENB, 0);
+  digitalWrite(IN1, LOW);
+  digitalWrite(IN2, LOW);
+  digitalWrite(IN3, LOW);
+  digitalWrite(IN4, LOW);
+}
 
 // Don't change the function below. This functions connects your ESP8266 to your router
 void setup_wifi()
@@ -76,31 +128,71 @@ void callback(String topic, byte *message, unsigned int length)
   // Feel free to add more if statements to control more GPIOs with MQTT
 
   // If a message is received on the topic home/office/esp1/gpio2, you check if the message is either 1 or 0. Turns the ESP GPIO according to the message
-  if (topic == "esp8266/4")
+  if (topic == "esp8266/F")
   {
-    Serial.print("Changing GPIO 4 to ");
+    Serial.print("Changing forward to ");
     if (messageTemp == "1")
     {
-      digitalWrite(ledGPIO4, HIGH);
+      // digitalWrite(ledGPIO4, HIGH);
+      forward();
+      delay(150);
       Serial.print("On");
     }
     else if (messageTemp == "0")
     {
-      digitalWrite(ledGPIO4, LOW);
+      // digitalWrite(ledGPIO4, LOW);
+      Stop();
       Serial.print("Off");
     }
   }
-  if (topic == "esp8266/5")
+  if (topic == "esp8266/B")
   {
-    Serial.print("Changing GPIO 5 to ");
+    Serial.print("Changing back to ");
     if (messageTemp == "1")
     {
-      digitalWrite(ledGPIO5, HIGH);
+      // digitalWrite(ledGPIO5, HIGH);
+      back();
+      delay(200);
       Serial.print("On");
     }
     else if (messageTemp == "0")
     {
       digitalWrite(ledGPIO5, LOW);
+      Stop();
+      Serial.print("Off");
+    }
+  }
+  if (topic == "esp8266/R")
+  {
+    Serial.print("Changing rear to ");
+    if (messageTemp == "1")
+    {
+      // digitalWrite(ledGPIO5, HIGH);
+      turnright();
+      delay(200);
+      Serial.print("On");
+    }
+    else if (messageTemp == "0")
+    {
+      digitalWrite(ledGPIO5, LOW);
+      Stop();
+      Serial.print("Off");
+    }
+  }
+  if (topic == "esp8266/L")
+  {
+    Serial.print("Changing left to ");
+    if (messageTemp == "1")
+    {
+      // digitalWrite(ledGPIO5, HIGH);
+      turnleft();
+      delay(200);
+      Serial.print("On");
+    }
+    else if (messageTemp == "0")
+    {
+      digitalWrite(ledGPIO5, LOW);
+      Stop();
       Serial.print("Off");
     }
   }
@@ -134,8 +226,10 @@ void reconnect()
       Serial.println("connected");
       // Subscribe or resubscribe to a topic
       // You can subscribe to more topics (to control more LEDs in this example)
-      client.subscribe("esp8266/4");
-      client.subscribe("esp8266/5");
+      client.subscribe("esp8266/F");
+      client.subscribe("esp8266/B");
+      client.subscribe("esp8266/R");
+      client.subscribe("esp8266/L");
     }
     else
     {
@@ -153,8 +247,13 @@ void reconnect()
 // The callback function is what receives messages and actually controls the LEDs
 void setup()
 {
-  pinMode(ledGPIO4, OUTPUT);
-  pinMode(ledGPIO5, OUTPUT);
+  pinMode(IN1, OUTPUT);
+  pinMode(IN2, OUTPUT);
+  pinMode(IN3, OUTPUT);
+  pinMode(IN4, OUTPUT);
+
+  pinMode(ENA, OUTPUT);
+  pinMode(ENB, OUTPUT);
 
   Serial.begin(115200);
   setup_wifi();

@@ -15,8 +15,10 @@ mqtt_password = "Adilap268"
 mqtt_broker_ip = "192.168.1.40"
 
 pins = {
-    4: {"name": "GPIO 4", "board": "esp8266", "topic": "esp8266/4", "state": "False"},
-    5: {"name": "GPIO 5", "board": "esp8266", "topic": "esp8266/5", "state": "False"},
+    4: {"name": "Forward", "board": "esp8266", "topic": "esp8266/F", "state": "False"},
+    5: {"name": "Back", "board": "esp8266", "topic": "esp8266/B", "state": "False"},
+    6: {"name": "Right", "board": "esp8266", "topic": "esp8266/R", "state": "False"},
+    7: {"name": "Left", "board": "esp8266", "topic": "esp8266/L", "state": "False"},
 }
 
 # Put the pin dictionary into the template data dictionary:

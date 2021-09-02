@@ -20,9 +20,9 @@
 #include <PubSubClient.h>
 // #include <EEPROM.h>
 
-const char *ssid = "***REMOVED***";
-const char *password = "***REMOVED***";
-const char *mqtt_server = "***REMOVED***";
+const char *ssid = "GNXS-NEW";
+const char *password = "kar268854";
+const char *mqtt_server = "192.168.1.40";
 const char *mqtt_username = "MQTT Username";
 const char *mqtt_password = "MQTT Password";
 // The client id identifies the ESP8266 device. Think of it a bit like a hostname (Or just a name, like Greg).

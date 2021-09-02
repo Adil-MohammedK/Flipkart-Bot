@@ -1,167 +1,188 @@
+/*
+
+ It connects to an MQTT server then:
+  - on 0 switches off relay
+  - on 1 switches on relay
+  - on 2 switches the state of the relay
+
+  - sends 0 on off relay
+  - sends 1 on on relay
+
+ It will reconnect to the server if the connection is lost using a blocking
+ reconnect function. See the 'mqtt_reconnect_nonblocking' example for how to
+ achieve the same result without blocking the main loop.
+
+ The current state is stored in EEPROM and restored on bootup
+
+*/
+
 #include <ESP8266WiFi.h>
+#include <PubSubClient.h>
+#include <EEPROM.h>
 
-#define gpio4LEDPin 4 /* One LED connected to GPIO4 - D2 */
-#define gpio5LEDPin 5 /* One LED connected to GPIO5 - D1 */
+const char *ssid = "GNXS-NEW";
+const char *password = "kar268854";
+const char *mqtt_server = "192.168.1.40";
+const char *mqtt_username = "MQTT Username";
+const char *mqtt_password = "MQTT Password";
+// The client id identifies the ESP8266 device. Think of it a bit like a hostname (Or just a name, like Greg).
+const char *clientID = "ESP8266";
 
-const char* ssid = "ssid"; /* Add your router's SSID */
-const char* password = "pass"; /*Add the password */
+WiFiClient espClient;
+PubSubClient client(mqtt_server, 1883, espClient);
 
-int gpio4Value; 
-int gpio5Value;
+// Connect an LED to each GPIO of your ESP8266
+const int ledGPIO5 = 5;
+const int ledGPIO4 = 4;
+const int ledGPIO13 = 15;
+const int ledGPIO15 = 13;
 
-WiFiServer espServer(80); /* Instance of WiFiServer with port number 80 */
-/* 80 is the Port Number for HTTP Web Server */
-
-void setup() 
+// Don't change the function below. This functions connects your ESP8266 to your router
+void setup_wifi()
 {
-  Serial.begin(115200); /* Begin Serial Communication with 115200 Baud Rate */
-  /* Configure GPIO4 and GPIO5 Pins as OUTPUTs */
-  pinMode(gpio4LEDPin, OUTPUT);
-  pinMode(gpio5LEDPin, OUTPUT);
-  /* Set the initial values of GPIO4 and GPIO5 as LOW*/
-  /* Both the LEDs are initially OFF */
-  digitalWrite(gpio4LEDPin, LOW);
-  digitalWrite(gpio5LEDPin, LOW);
-  
-  Serial.print("\n");
-  Serial.print("Connecting to: ");
+  delay(10);
+  // We start by connecting to a WiFi network
+  Serial.println();
+  Serial.print("Connecting to ");
   Serial.println(ssid);
-  WiFi.mode(WIFI_STA); /* Configure ESP8266 in STA Mode */
-  WiFi.begin(ssid, password); /* Connect to Wi-Fi based on above SSID and Password */
-  while(WiFi.status() != WL_CONNECTED)
+  WiFi.begin(ssid, password);
+  while (WiFi.status() != WL_CONNECTED)
   {
-    Serial.print("*");
     delay(500);
+    Serial.print(".");
   }
-  Serial.print("\n");
-  Serial.print("Connected to Wi-Fi: ");
-  Serial.println(WiFi.SSID());
-  delay(100);
-  /* The next four lines of Code are used for assigning Static IP to ESP8266 */
-  /* Do this only if you know what you are doing */
-  /* You have to check for free IP Addresses from your Router and */
-  /* assign it to ESP8266 */
-  /* If you are confirtable with this step, please un-comment the next four lines *
-  /* if not, leave it as it is and proceed */
-  //IPAddress ip(192,168,1,6);   
-  //IPAddress gateway(192,168,1,1);   
-  //IPAddress subnet(255,255,255,0);   
-  //WiFi.config(ip, gateway, subnet);
-  //delay(2000);
-  Serial.print("\n");
-  Serial.println("Starting ESP8266 Web Server...");
-  espServer.begin(); /* Start the HTTP web Server */
-  Serial.println("ESP8266 Web Server Started");
-  Serial.print("\n");
-  Serial.print("The URL of ESP8266 Web Server is: ");
-  Serial.print("http://");
+  Serial.println("");
+  Serial.print("WiFi connected - ESP IP address: ");
   Serial.println(WiFi.localIP());
-  Serial.print("\n");
-  Serial.println("Use the above URL in your Browser to access ESP8266 Web Server\n");
 }
 
+// This functions is executed when some device publishes a message to a topic that your ESP8266 is subscribed to
+// Change the function below to add logic to your program, so when a device publishes a message to a topic that
+// your ESP8266 is subscribed you can actually do something
+void callback(String topic, byte *message, unsigned int length)
+{
+  Serial.print("Message arrived on topic: ");
+  Serial.print(topic);
+  Serial.print(". Message: ");
+  String messageTemp;
+
+  for (int i = 0; i < length; i++)
+  {
+    Serial.print((char)message[i]);
+    messageTemp += (char)message[i];
+  }
+  Serial.println();
+
+  // Feel free to add more if statements to control more GPIOs with MQTT
+
+  // If a message is received on the topic home/office/esp1/gpio2, you check if the message is either 1 or 0. Turns the ESP GPIO according to the message
+  if (topic == "esp8266/4")
+  {
+    Serial.print("Changing GPIO 4 to ");
+    if (messageTemp == "1")
+    {
+      digitalWrite(ledGPIO4, HIGH);
+      Serial.print("On");
+    }
+    else if (messageTemp == "0")
+    {
+      digitalWrite(ledGPIO4, LOW);
+      Serial.print("Off");
+    }
+  }
+  if (topic == "esp8266/5")
+  {
+    Serial.print("Changing GPIO 5 to ");
+    if (messageTemp == "1")
+    {
+      digitalWrite(ledGPIO5, HIGH);
+      Serial.print("On");
+    }
+    else if (messageTemp == "0")
+    {
+      digitalWrite(ledGPIO5, LOW);
+      Serial.print("Off");
+    }
+  }
+  Serial.println();
+}
+
+// This functions reconnects your ESP8266 to your MQTT broker
+// Change the function below if you want to subscribe to more topics with your ESP8266
+void reconnect()
+{
+  // Loop until we're reconnected
+  while (!client.connected())
+  {
+    Serial.print("Attempting MQTT connection...");
+    // Attempt to connect
+    /*
+     YOU  NEED TO CHANGE THIS NEXT LINE, IF YOU'RE HAVING PROBLEMS WITH MQTT MULTIPLE CONNECTIONS
+     To change the ESP device ID, you will have to give a unique name to the ESP8266.
+     Here's how it looks like now:
+       if (client.connect("ESP8266Client")) {
+     If you want more devices connected to the MQTT broker, you can do it like this:
+       if (client.connect("ESPOffice")) {
+     Then, for the other ESP:
+       if (client.connect("ESPGarage")) {
+      That should solve your MQTT multiple connections problem
+
+     THE SECTION IN loop() function should match your device name
+    */
+    if (client.connect(clientID, mqtt_username, mqtt_password))
+    {
+      Serial.println("connected");
+      // Subscribe or resubscribe to a topic
+      // You can subscribe to more topics (to control more LEDs in this example)
+      client.subscribe("esp8266/4");
+      client.subscribe("esp8266/5");
+    }
+    else
+    {
+      Serial.print("failed, rc=");
+      Serial.print(client.state());
+      Serial.println(" try again in 5 seconds");
+      // Wait 5 seconds before retrying
+      delay(5000);
+    }
+  }
+}
+
+// The setup function sets your ESP GPIOs to Outputs, starts the serial communication at a baud rate of 115200
+// Sets your mqtt broker and sets the callback function
+// The callback function is what receives messages and actually controls the LEDs
+void setup()
+{
+  pinMode(ledGPIO4, OUTPUT);
+  pinMode(ledGPIO5, OUTPUT);
+
+  Serial.begin(115200);
+  setup_wifi();
+  client.setServer(mqtt_server, 1883);
+  client.setCallback(callback);
+}
+
+// For this project, you don't need to change anything in the loop function.
+// Basically it ensures that you ESP is connected to your broker
 void loop()
 {
-  WiFiClient client = espServer.available(); /* Check if a client is available */
-  if(!client)
+  if (!client.connected())
   {
-    return;
+    reconnect();
   }
+  if (!client.loop())
+    /*
+     YOU  NEED TO CHANGE THIS NEXT LINE, IF YOU'RE HAVING PROBLEMS WITH MQTT MULTIPLE CONNECTIONS
+     To change the ESP device ID, you will have to give a unique name to the ESP8266.
+     Here's how it looks like now:
+       client.connect("ESP8266Client");
+     If you want more devices connected to the MQTT broker, you can do it like this:
+       client.connect("ESPOffice");
+     Then, for the other ESP:
+       client.connect("ESPGarage");
+      That should solve your MQTT multiple connections problem
 
-  Serial.println("New Client!!!");
-
-  String request = client.readStringUntil('\r'); /* Read the first line of the request from client */
-  Serial.println(request); /* Print the request on the Serial monitor */
-  /* The request is in the form of HTTP GET Method */ 
-  client.flush();
-
-  /* Extract the URL of the request */
-  /* We have four URLs. If IP Address is 192.168.1.6 (for example),
-   * then URLs are: 
-   * 192.168.1.6/GPIO4ON and its request is GET /GPIO4ON HTTP/1.1
-   * 192.168.1.6/GPIO4OFF and its request is GET /GPIO4OFF HTTP/1.1
-   * 192.168.1.6/GPIO5ON and its request is GET /GPIO5ON HTTP/1.1
-   * 192.168.1.6/GPIO4OFF and its request is GET /GPIO5OFF HTTP/1.1
-   */
-   /* Based on the URL from the request, turn the LEDs ON or OFF */
-  if (request.indexOf("/GPIO4ON") != -1) 
-  {
-    Serial.println("GPIO4 LED is ON");
-    digitalWrite(gpio4LEDPin, HIGH);
-    gpio4Value = HIGH;
-  } 
-  if (request.indexOf("/GPIO4OFF") != -1)
-  {
-    Serial.println("GPIO4 LED is OFF");
-    digitalWrite(gpio4LEDPin, LOW);
-    gpio4Value = LOW;
-  }
-  if (request.indexOf("/GPIO5ON") != -1) 
-  {
-    Serial.println("GPIO5 LED is ON");
-    digitalWrite(gpio5LEDPin, HIGH);
-    gpio5Value = HIGH;
-  } 
-  if (request.indexOf("/GPIO5OFF") != -1)
-  {
-    Serial.println("GPIO5 LED is OFF");
-    digitalWrite(gpio5LEDPin, LOW);
-    gpio5Value = LOW;
-  }
-
-
-  /* HTTP Response in the form of HTML Web Page */
-  client.println("HTTP/1.1 200 OK");
-  client.println("Content-Type: text/html");
-  client.println(); //  IMPORTANT
-  client.println("<!DOCTYPE HTML>");
-  client.println("<html>");
-  client.println("<head>");
-  client.println("<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">");
-  client.println("<link rel=\"icon\" href=\"data:,\">");
-  /* CSS Styling for Buttons and Web Page */
-  client.println("<style>");
-  client.println("html { font-family: Courier New; display: inline-block; margin: 0px auto; text-align: center;}");
-  client.println(".button {border: none; color: white; padding: 10px 20px; text-align: center;");
-  client.println("text-decoration: none; font-size: 25px; margin: 2px; cursor: pointer;}");
-  client.println(".button1 {background-color: #13B3F0;}");
-  client.println(".button2 {background-color: #3342FF;}");
-  client.println("</style>");
-  client.println("</head>");
-  
-  /* The main body of the Web Page */
-  client.println("<body>");
-  client.println("<h2>ESP8266 Web Server</h2>");
-  
-  if(gpio4Value == LOW) 
-  {
-    client.println("<p>GPIO4 LED Status: OFF</p>");
-    client.print("<p><a href=\"/GPIO4ON\"><button class=\"button button1\">Click to turn ON</button></a></p>");  
-  } 
-  else 
-  {
-    client.println("<p>GPIO4 LED Status: ON</p>");
-    client.print("<p><a href=\"/GPIO4OFF\"><button class=\"button button2\">Click to turn OFF</button></a></p>"); 
-  }
-  
-  if(gpio5Value == LOW) 
-  {
-    client.println("<p>GPIO5 LED Status: OFF</p>");
-    client.print("<p><a href=\"/GPIO5ON\"><button class=\"button button1\">Click to turn ON</button></a></p>");  
-  } 
-  else 
-  {
-    client.println("<p>GPIO5 LED Status: ON</p>");
-    client.print("<p><a href=\"/GPIO5OFF\"><button class=\"button button2\">Click to turn OFF</button></a></p>");  
-  }
-  
-  client.println("</body>");
-  client.println("</html>");
-  client.print("\n");
-  
-  delay(1);
-  /* Close the connection */
-  client.stop();
-  Serial.println("Client disconnected");
-  Serial.print("\n");
+     THE SECTION IN recionnect() function should match your device name
+    */
+    client.connect(clientID, mqtt_username, mqtt_password);
 }

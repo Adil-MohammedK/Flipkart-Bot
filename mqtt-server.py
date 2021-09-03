@@ -4,15 +4,16 @@ Thomas Varnish (https://github.com/tvarnish), (https://www.instructables.com/mem
 Written for my Instructable - "How to use MQTT with the Raspberry Pi and ESP8266"
 """
 import paho.mqtt.client as mqtt
+import passwords
 from flask import Flask, render_template, request
 
 app = Flask(__name__)
 
 # Don't forget to change the variables for the MQTT broker!
 mqtt_username = "AdilPi"
-mqtt_password = "***REMOVED***"
+mqtt_password = passwords.mqtt_pass
 # mqtt_topic = "esp/led_control"
-mqtt_broker_ip = "***REMOVED***"
+mqtt_broker_ip = passwords.mqtt_ip
 
 pins = {
     4: {"name": "Forward", "board": "esp8266", "topic": "esp8266/F", "state": "False"},
@@ -27,7 +28,7 @@ templateData = {"pins": pins}
 client = mqtt.Client()
 # Set the username and password for the MQTT client
 client.username_pw_set(mqtt_username, mqtt_password)
-client.connect("***REMOVED***", 1883, 60)
+client.connect(mqtt_broker_ip, 1883, 60)
 client.loop_start()
 
 

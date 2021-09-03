@@ -19,12 +19,18 @@
 #include <ESP8266WiFi.h>
 #include <PubSubClient.h>
 // #include <EEPROM.h>
+#include "passwords.h" // credentials stored in this header as
+// #define WIFI_SSID "ssid"
+// #define WIFI_PASS "pass"
+// #define MQTT_SERVER "ip"
+// #define MQTT_USER "username"
+// #define MQTT_PASS "pass"
 
-const char *ssid = "GNXS-NEW";
-const char *password = "kar268854";
-const char *mqtt_server = "192.168.1.40";
-const char *mqtt_username = "MQTT Username";
-const char *mqtt_password = "MQTT Password";
+const char *ssid = WIFI_SSID;
+const char *password = WIFI_PASS;
+const char *mqtt_server = MQTT_SERVER;
+const char *mqtt_username = MQTT_USER;
+const char *mqtt_password = MQTT_PASS;
 // The client id identifies the ESP8266 device. Think of it a bit like a hostname (Or just a name, like Greg).
 const char *clientID = "ESP8266";
 

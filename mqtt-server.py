@@ -10,9 +10,9 @@ app = Flask(__name__)
 
 # Don't forget to change the variables for the MQTT broker!
 mqtt_username = "AdilPi"
-mqtt_password = "Adilap268"
+mqtt_password = "***REMOVED***"
 # mqtt_topic = "esp/led_control"
-mqtt_broker_ip = "192.168.1.40"
+mqtt_broker_ip = "***REMOVED***"
 
 pins = {
     4: {"name": "Forward", "board": "esp8266", "topic": "esp8266/F", "state": "False"},
@@ -27,7 +27,7 @@ templateData = {"pins": pins}
 client = mqtt.Client()
 # Set the username and password for the MQTT client
 client.username_pw_set(mqtt_username, mqtt_password)
-client.connect("192.168.1.40", 1883, 60)
+client.connect("***REMOVED***", 1883, 60)
 client.loop_start()
 
 

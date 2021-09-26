@@ -38,57 +38,70 @@ WiFiClient espClient;
 PubSubClient client(mqtt_server, 1883, espClient);
 
 // Connect an LED to each GPIO of your ESP8266
-const int ledGPIO5 = 5;
-const int ledGPIO4 = 4;
-const int ledGPIO13 = 15;
-const int ledGPIO15 = 13;
+// const int IN1 = 5;
+// const int IN2 = 4;
+// const int IN3 = 15;
+// const int IN4 = 13;
+
+// For ESP8266
+// //Motor one
+// // #define ENA 2
+// #define IN1 5
+// #define IN2 4
+
+// //Motor two
+// #define IN3 14
+// #define IN4 15
+// // #define ENB 13
+
+For ESP32
 //Motor one
-#define ENA 2
-#define IN1 5
-#define IN2 4
+// #define ENA 2
+#define IN1 23
+#define IN2 22
 
 //Motor two
-#define IN3 14
-#define IN4 15
-#define ENB 13
+#define IN3 21
+#define IN4 19
+// #define ENB 13
 
 #define Speed 200
 
 void forward() {
-  analogWrite(ENA, Speed);
-  analogWrite(ENB, Speed);
+  // analogWrite(ENA, Speed);
+  // analogWrite(ENB, Speed);
   digitalWrite(IN1, LOW);
   digitalWrite(IN2, HIGH);
   digitalWrite(IN3, HIGH);
   digitalWrite(IN4, LOW);
 }
 void back() {
-  analogWrite(ENA, Speed);
-  analogWrite(ENB, Speed);
+  // analogWrite(ENA, Speed);
+  // analogWrite(ENB, Speed);
   digitalWrite(IN1, HIGH);
   digitalWrite(IN2, LOW);
   digitalWrite(IN3, LOW);
   digitalWrite(IN4, HIGH);
 }
 void turnright() {
-  analogWrite(ENA, Speed);
-  analogWrite(ENB, Speed);
+  // analogWrite(ENA, Speed);
+  // analogWrite(ENB, Speed);
   digitalWrite(IN1, HIGH);
   digitalWrite(IN2, LOW);
   digitalWrite(IN3, HIGH);
   digitalWrite(IN4, LOW);
 }
 void turnleft() {
-  analogWrite(ENA, Speed);
-  analogWrite(ENB, Speed);
+  // analogWrite(ENA, Speed);
+  // analogWrite(ENB, Speed);
   digitalWrite(IN1, LOW);
   digitalWrite(IN2, HIGH);
   digitalWrite(IN3, LOW);
   digitalWrite(IN4, HIGH);
 }
 void Stop() {
-  analogWrite(ENA, 0);
-  analogWrite(ENB, 0);
+  // analogWrite(ENA, 0);
+  // analogWrite(ENB, 0);
   digitalWrite(IN1, LOW);
   digitalWrite(IN2, LOW);
   digitalWrite(IN3, LOW);
@@ -139,14 +152,14 @@ void callback(String topic, byte *message, unsigned int length)
     Serial.print("Changing forward to ");
     if (messageTemp == "1")
     {
-      // digitalWrite(ledGPIO4, HIGH);
+      // digitalWrite(IN2, HIGH);
       forward();
       delay(150);
       Serial.print("On");
     }
     else if (messageTemp == "0")
     {
-      // digitalWrite(ledGPIO4, LOW);
+      // digitalWrite(IN2, LOW);
       Stop();
       Serial.print("Off");
     }
@@ -156,14 +169,14 @@ void callback(String topic, byte *message, unsigned int length)
     Serial.print("Changing back to ");
     if (messageTemp == "1")
     {
-      // digitalWrite(ledGPIO5, HIGH);
+      // digitalWrite(IN1, HIGH);
       back();
       delay(200);
       Serial.print("On");
     }
     else if (messageTemp == "0")
     {
-      digitalWrite(ledGPIO5, LOW);
+      digitalWrite(IN1, LOW);
       Stop();
       Serial.print("Off");
     }
@@ -173,14 +186,14 @@ void callback(String topic, byte *message, unsigned int length)
     Serial.print("Changing rear to ");
     if (messageTemp == "1")
     {
-      // digitalWrite(ledGPIO5, HIGH);
+      // digitalWrite(IN1, HIGH);
       turnright();
       delay(200);
       Serial.print("On");
     }
     else if (messageTemp == "0")
     {
-      digitalWrite(ledGPIO5, LOW);
+      digitalWrite(IN1, LOW);
       Stop();
       Serial.print("Off");
     }
@@ -190,14 +203,14 @@ void callback(String topic, byte *message, unsigned int length)
     Serial.print("Changing left to ");
     if (messageTemp == "1")
     {
-      // digitalWrite(ledGPIO5, HIGH);
+      // digitalWrite(IN1, HIGH);
       turnleft();
       delay(200);
       Serial.print("On");
     }
     else if (messageTemp == "0")
     {
-      digitalWrite(ledGPIO5, LOW);
+      digitalWrite(IN1, LOW);
       Stop();
       Serial.print("Off");
     }
@@ -257,9 +270,6 @@ void setup()
   pinMode(IN2, OUTPUT);
   pinMode(IN3, OUTPUT);
   pinMode(IN4, OUTPUT);
-
-  pinMode(ENA, OUTPUT);
-  pinMode(ENB, OUTPUT);
 
   Serial.begin(115200);
   setup_wifi();

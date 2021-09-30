@@ -3,10 +3,6 @@
  It connects to an MQTT server then:
   - on 0 switches off relay
   - on 1 switches on relay
-  - on 2 switches the state of the relay
-
-  - sends 0 on off relay
-  - sends 1 on on relay
 
  It will reconnect to the server if the connection is lost using a blocking
  reconnect function. See the 'mqtt_reconnect_nonblocking' example for how to
@@ -17,8 +13,8 @@
 */
 
 #include <ESP8266WiFi.h>
+// #include<Wifi.h>  Uncomment for ESP32
 #include <PubSubClient.h>
-// #include <EEPROM.h>
 #include "passwords.h" // credentials stored in this header as
 // #define WIFI_SSID "ssid"
 // #define WIFI_PASS "pass"
@@ -26,22 +22,22 @@
 // #define MQTT_USER "username"
 // #define MQTT_PASS "pass"
 
+
+
+// Fill out the credentials
 const char *ssid = WIFI_SSID;
 const char *password = WIFI_PASS;
+
 const char *mqtt_server = MQTT_SERVER;
-const char *mqtt_username = MQTT_USER;
-const char *mqtt_password = MQTT_PASS;
+// Uncomment below if MQTT uses passowrds
+// const char *mqtt_username = MQTT_USER; 
+// const char *mqtt_password = MQTT_PASS;
 // The client id identifies the ESP8266 device. Think of it a bit like a hostname (Or just a name, like Greg).
 const char *clientID = "ESP8266";
 
 WiFiClient espClient;
 PubSubClient client(mqtt_server, 1883, espClient);
 
-// Connect an LED to each GPIO of your ESP8266
-// const int IN1 = 5;
-// const int IN2 = 4;
-// const int IN3 = 15;
-// const int IN4 = 13;
 
 // For ESP8266
 // //Motor one
@@ -54,10 +50,10 @@ PubSubClient client(mqtt_server, 1883, espClient);
 // #define IN4 15
 // // #define ENB 13
 
-For ESP32
+// For ESP32
 //Motor one
 // #define ENA 2
-#define IN1 23
+#define IN1 23 
 #define IN2 22
 
 //Motor two
@@ -226,21 +222,9 @@ void reconnect()
   while (!client.connected())
   {
     Serial.print("Attempting MQTT connection...");
-    // Attempt to connect
-    /*
-     YOU  NEED TO CHANGE THIS NEXT LINE, IF YOU'RE HAVING PROBLEMS WITH MQTT MULTIPLE CONNECTIONS
-     To change the ESP device ID, you will have to give a unique name to the ESP8266.
-     Here's how it looks like now:
-       if (client.connect("ESP8266Client")) {
-     If you want more devices connected to the MQTT broker, you can do it like this:
-       if (client.connect("ESPOffice")) {
-     Then, for the other ESP:
-       if (client.connect("ESPGarage")) {
-      That should solve your MQTT multiple connections problem
-
-     THE SECTION IN loop() function should match your device name
-    */
-    if (client.connect(clientID, mqtt_username, mqtt_password))
+    // Uncomment if using passowrds
+    // if (client.connect(clientID, mqtt_username, mqtt_password))
+    if (client.connect(clientID))
     {
       Serial.println("connected");
       // Subscribe or resubscribe to a topic
@@ -286,18 +270,9 @@ void loop()
     reconnect();
   }
   if (!client.loop())
-    /*
-     YOU  NEED TO CHANGE THIS NEXT LINE, IF YOU'RE HAVING PROBLEMS WITH MQTT MULTIPLE CONNECTIONS
-     To change the ESP device ID, you will have to give a unique name to the ESP8266.
-     Here's how it looks like now:
-       client.connect("ESP8266Client");
-     If you want more devices connected to the MQTT broker, you can do it like this:
-       client.connect("ESPOffice");
-     Then, for the other ESP:
-       client.connect("ESPGarage");
-      That should solve your MQTT multiple connections problem
+    
+    client.connect(clientID);
+    // Uncomment if using passwords
+    // client.connect(clientID, mqtt_username, mqtt_password);
 
-     THE SECTION IN recionnect() function should match your device name
-    */
-    client.connect(clientID, mqtt_username, mqtt_password);
 }

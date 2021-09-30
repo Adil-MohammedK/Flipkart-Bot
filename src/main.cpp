@@ -33,7 +33,7 @@ const char *mqtt_server = MQTT_SERVER;
 // const char *mqtt_username = MQTT_USER; 
 // const char *mqtt_password = MQTT_PASS;
 // The client id identifies the ESP8266 device. Think of it a bit like a hostname (Or just a name, like Greg).
-const char *clientID = "ESP8266";
+const char *clientID = "Bot1";
 
 WiFiClient espClient;
 PubSubClient client(mqtt_server, 1883, espClient);
@@ -143,14 +143,14 @@ void callback(String topic, byte *message, unsigned int length)
   // Feel free to add more if statements to control more GPIOs with MQTT
 
   // If a message is received on the topic home/office/esp1/gpio2, you check if the message is either 1 or 0. Turns the ESP GPIO according to the message
-  if (topic == "esp8266/F")
+  if (topic == "Bot1/F")
   {
     Serial.print("Changing forward to ");
     if (messageTemp == "1")
     {
       // digitalWrite(IN2, HIGH);
       forward();
-      delay(150);
+      delay(1000);
       Serial.print("On");
     }
     else if (messageTemp == "0")
@@ -160,14 +160,14 @@ void callback(String topic, byte *message, unsigned int length)
       Serial.print("Off");
     }
   }
-  if (topic == "esp8266/B")
+  if (topic == "Bot1/B")
   {
     Serial.print("Changing back to ");
     if (messageTemp == "1")
     {
       // digitalWrite(IN1, HIGH);
       back();
-      delay(200);
+      delay(1000);
       Serial.print("On");
     }
     else if (messageTemp == "0")
@@ -177,14 +177,14 @@ void callback(String topic, byte *message, unsigned int length)
       Serial.print("Off");
     }
   }
-  if (topic == "esp8266/R")
+  if (topic == "Bot1/R")
   {
     Serial.print("Changing rear to ");
     if (messageTemp == "1")
     {
       // digitalWrite(IN1, HIGH);
       turnright();
-      delay(200);
+      delay(500);
       Serial.print("On");
     }
     else if (messageTemp == "0")
@@ -194,14 +194,14 @@ void callback(String topic, byte *message, unsigned int length)
       Serial.print("Off");
     }
   }
-  if (topic == "esp8266/L")
+  if (topic == "Bot1/L")
   {
     Serial.print("Changing left to ");
     if (messageTemp == "1")
     {
       // digitalWrite(IN1, HIGH);
       turnleft();
-      delay(200);
+      delay(500);
       Serial.print("On");
     }
     else if (messageTemp == "0")
@@ -229,10 +229,10 @@ void reconnect()
       Serial.println("connected");
       // Subscribe or resubscribe to a topic
       // You can subscribe to more topics (to control more LEDs in this example)
-      client.subscribe("esp8266/F");
-      client.subscribe("esp8266/B");
-      client.subscribe("esp8266/R");
-      client.subscribe("esp8266/L");
+      client.subscribe("Bot1/F");
+      client.subscribe("bot1/B");
+      client.subscribe("Bot1/R");
+      client.subscribe("Bot1/L");
     }
     else
     {

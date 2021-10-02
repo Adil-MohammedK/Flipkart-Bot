@@ -12,8 +12,8 @@
 
 */
 
-#include <ESP8266WiFi.h>
-// #include<Wifi.h>  Uncomment for ESP32
+// #include <ESP8266WiFi.h>
+#include<Wifi.h> // Uncomment for ESP32
 #include <PubSubClient.h>
 #include "passwords.h" // credentials stored in this header as
 // #define WIFI_SSID "ssid"
@@ -47,7 +47,7 @@ PubSubClient client(mqtt_server, 1883, espClient);
 
 // //Motor two
 // #define IN3 14
-// #define IN4 15
+// #define IN4 12
 // // #define ENB 13
 
 // For ESP32
@@ -68,30 +68,30 @@ void forward() {
   // analogWrite(ENB, Speed);
   digitalWrite(IN1, LOW);
   digitalWrite(IN2, HIGH);
-  digitalWrite(IN3, HIGH);
-  digitalWrite(IN4, LOW);
+  digitalWrite(IN3, LOW);
+  digitalWrite(IN4, HIGH);
 }
 void back() {
   // analogWrite(ENA, Speed);
   // analogWrite(ENB, Speed);
   digitalWrite(IN1, HIGH);
   digitalWrite(IN2, LOW);
-  digitalWrite(IN3, LOW);
-  digitalWrite(IN4, HIGH);
+  digitalWrite(IN3, HIGH);
+  digitalWrite(IN4, LOW);
 }
 void turnright() {
   // analogWrite(ENA, Speed);
   // analogWrite(ENB, Speed);
-  digitalWrite(IN1, HIGH);
-  digitalWrite(IN2, LOW);
+  digitalWrite(IN1, LOW);
+  digitalWrite(IN2, HIGH);
   digitalWrite(IN3, HIGH);
   digitalWrite(IN4, LOW);
 }
 void turnleft() {
   // analogWrite(ENA, Speed);
   // analogWrite(ENB, Speed);
-  digitalWrite(IN1, LOW);
-  digitalWrite(IN2, HIGH);
+  digitalWrite(IN1, HIGH);
+  digitalWrite(IN2, LOW);
   digitalWrite(IN3, LOW);
   digitalWrite(IN4, HIGH);
 }
@@ -150,7 +150,8 @@ void callback(String topic, byte *message, unsigned int length)
     {
       // digitalWrite(IN2, HIGH);
       forward();
-      delay(1000);
+      delay(250);
+      Stop();
       Serial.print("On");
     }
     else if (messageTemp == "0")
@@ -167,7 +168,8 @@ void callback(String topic, byte *message, unsigned int length)
     {
       // digitalWrite(IN1, HIGH);
       back();
-      delay(1000);
+      delay(250);
+      Stop();
       Serial.print("On");
     }
     else if (messageTemp == "0")
@@ -184,7 +186,8 @@ void callback(String topic, byte *message, unsigned int length)
     {
       // digitalWrite(IN1, HIGH);
       turnright();
-      delay(500);
+      delay(200);
+      Stop();
       Serial.print("On");
     }
     else if (messageTemp == "0")
@@ -201,7 +204,8 @@ void callback(String topic, byte *message, unsigned int length)
     {
       // digitalWrite(IN1, HIGH);
       turnleft();
-      delay(500);
+      delay(200);
+      Stop();
       Serial.print("On");
     }
     else if (messageTemp == "0")
@@ -233,6 +237,7 @@ void reconnect()
       client.subscribe("bot1/B");
       client.subscribe("Bot1/R");
       client.subscribe("Bot1/L");
+      client.publish("Bot1/status", "Ready");
     }
     else
     {
